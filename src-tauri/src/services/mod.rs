@@ -8,5 +8,6 @@ pub mod higgsfield;
 pub mod http;
 pub mod json;
 pub mod llm;
+pub mod seedream;
 pub mod story;
 pub mod styles;

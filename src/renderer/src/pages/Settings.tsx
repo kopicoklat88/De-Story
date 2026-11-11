@@ -172,7 +172,7 @@ function KeyForm({
 }) {
   const { toast } = useApp()
   const configured = !!status?.configured
-  const isEndpoint = provider === 'custom' || provider === 'flow2api'
+  const isEndpoint = provider === 'custom' || provider === 'flow2api' || provider === 'seedream'
   const preview = status?.preview ?? null
   const [editing, setEditing] = useState(!configured)
   const [key, setKey] = useState('')
@@ -223,9 +223,11 @@ function KeyForm({
       const r =
         provider === 'custom'
           ? await window.api.settings.setCustom(url, key)
-          : provider === 'flow2api'
-            ? await window.api.settings.setFlow2api(url, key, mode)
-            : await window.api.settings.setKey(provider, key)
+          : provider === 'seedream'
+            ? await window.api.settings.setSeedream(url, key)
+            : provider === 'flow2api'
+              ? await window.api.settings.setFlow2api(url, key, mode)
+              : await window.api.settings.setKey(provider, key)
       toast(r.ok ? 'success' : 'error', `${name}: ${r.message}`)
       setKey('')
       setEditing(false)
@@ -865,6 +867,43 @@ function HiggsfieldSection({ status, onChanged }: { status?: KeyStatus; onChange
   )
 }
 
+function SeedreamSection({ settings, status, onChanged, onSettings }: { settings: AppSettings; status?: KeyStatus; onChanged: () => void; onSettings: (s: AppSettings) => void }) {
+  return (
+    <>
+      <SectionTitle icon={<ImageIcon className="size-5" />} title="Seedream (BytePlus ModelArk)" sub="Seedream membuat gambar klip dan lembar karakter. Terpisah dari Endpoint Custom, jadi naskah tetap pakai chatgpt2api." />
+      <Card>
+        <div className="flex items-center gap-3">
+          <ProviderLogo id="seedream" />
+          <div className="flex flex-1 flex-col">
+            <span className="text-base font-bold">Seedream</span>
+            <span className="text-[13px] text-ink-2">Seedream 4.5, 5.0 Flash & 5.0 Pro dari akun BytePlus ModelArk kamu</span>
+          </div>
+          <StatusBadge status={status} />
+        </div>
+        <KeyForm
+          provider="seedream"
+          name="Seedream"
+          status={status}
+          placeholder="Tempel ModelArk API key"
+          help="Kunci dibuat di console BytePlus → ModelArk → API Key. Model Seedream harus diaktifkan dulu di konsol ModelArk, kalau tidak gambar gagal."
+          link="https://console.byteplus.com/modelark"
+          linkLabel="Buka konsol ModelArk"
+          customUrl={settings.seedreamBaseUrl}
+          onChanged={onChanged}
+          onSaved={async (r) => {
+            if (!r.ok) return
+            onSettings(await window.api.settings.get())
+          }}
+        />
+        <p className="flex items-start gap-2.5 border-t border-dashed border-line pt-4 text-[13px] leading-relaxed text-ink-2">
+          <Info className="mt-0.5 size-4 shrink-0 text-ink-2" />
+          Pilih model Seedream di Model AI tiap proyek. Endpoint bawaan: ark.ap-southeast.bytepluses.com (region ap-southeast-1).
+        </p>
+      </Card>
+    </>
+  )
+}
+
 function Flow2ApiSection({
   settings,
   status,
@@ -1349,6 +1388,7 @@ export function Settings() {
                 <LlmSection settings={settings} statusOf={statusOf} onChanged={reload} onSettings={setSettings} />
                 <TtsSection settings={settings} statusOf={statusOf} onChanged={reload} onSettings={setSettings} />
                 <HiggsfieldSection status={statusOf('higgsfield')} onChanged={reload} />
+                <SeedreamSection settings={settings} status={statusOf('seedream')} onChanged={reload} onSettings={setSettings} />
                 <Flow2ApiSection settings={settings} status={statusOf('flow2api')} onChanged={reload} onSettings={setSettings} />
                 <WhisperSection settings={settings} onSettings={setSettings} />
               </>

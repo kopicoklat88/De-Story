@@ -662,6 +662,46 @@ async fn test_provider(
             }
             Err(error) => KeyTestResult { ok: false, message: Some(error) },
         }
+    } else if provider == "seedream" {
+        // Lightweight connectivity check: list models on the Ark endpoint.
+        let (seedream_base, saved_key) = {
+            let conn = db.lock().unwrap();
+            let s = get_settings(&conn);
+            (
+                s.get("seedreamBaseUrl").and_then(|x| x.as_str()).unwrap_or(crate::services::seedream::DEFAULT_SEEDREAM_BASE_URL).to_string(),
+                get_secret(&conn, "seedream"),
+            )
+        };
+        let use_key = if k.is_empty() { saved_key } else { Some(k.clone()) };
+        let Some(use_key) = use_key.filter(|x| !x.trim().is_empty()) else {
+            return KeyTestResult { ok: false, message: Some("Isi kunci Seedream (ModelArk) dulu.".into()) };
+        };
+        let url = format!("{}/models", seedream_base.trim_end_matches('/'));
+        let client = reqwest::Client::builder().timeout(std::time::Duration::from_secs(20)).build();
+        match client {
+            Ok(client) => match client.get(&url).bearer_auth(use_key.trim()).send().await {
+                Ok(resp) if resp.status().is_success() => KeyTestResult { ok: true, message: Some("Seedream terhubung.".into()) },
+                Ok(resp) => {
+                    let status = resp.status();
+                    let body = resp.text().await.unwrap_or_default();
+                    let mut msg = String::new();
+                    if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&body) {
+                        if let Some(m) = parsed.get("error").and_then(|e| e.get("message")).and_then(|m| m.as_str()) {
+                            msg = m.to_string();
+                        }
+                    }
+                    if status.as_u16() == 401 {
+                        return KeyTestResult { ok: false, message: Some("Kunci Seedream ditolak. Periksa kunci ModelArk di Pengaturan.".into()) };
+                    }
+                    if status.as_u16() == 404 || msg.to_lowercase().contains("modelnotopen") {
+                        return KeyTestResult { ok: false, message: Some("Model Seedream belum diaktifkan di konsol ModelArk. Aktifkan dulu modelnya, baru tes lagi.".into()) };
+                    }
+                    KeyTestResult { ok: false, message: Some(if msg.is_empty() { format!("Seedream menjawab dengan status {status}.") } else { format!("Seedream: {msg}") }) }
+                }
+                Err(e) => KeyTestResult { ok: false, message: Some(format!("Tidak bisa mencapai endpoint Seedream: {e}")) },
+            },
+            Err(e) => KeyTestResult { ok: false, message: Some(format!("Tidak bisa membuat koneksi: {e}")) },
+        }
     } else {
         let custom_base = {
             let conn = db.lock().unwrap();
@@ -738,6 +778,38 @@ pub async fn settings_set_custom(
     {
         let conn = db.lock().unwrap();
         let _ = record_check(&conn, "custom", result.ok, result.message.as_deref());
+    }
+
+    Ok(result)
+}
+
+/// Saves the Seedream (BytePlus ModelArk) image endpoint + API key.
+/// Mirrors settings_set_custom; the key lives in secret provider "seedream".
+#[tauri::command]
+pub async fn settings_set_seedream(
+    db: State<'_, DbPool>,
+    base_url: String,
+    key: String,
+) -> Result<KeyTestResult, String> {
+    let url = base_url.trim().trim_end_matches('/').to_string();
+    if !url.starts_with("http://") && !url.starts_with("https://") {
+        return Err("Alamat endpoint harus diawali http:// atau https://".into());
+    }
+
+    {
+        let conn = db.lock().unwrap();
+        patch_settings(&conn, json!({ "seedreamBaseUrl": url }))?;
+        let clean_k = key.trim();
+        if !clean_k.is_empty() {
+            set_secret(&conn, "seedream", clean_k)?;
+        }
+        let _ = drop_cache(&conn, "models:seedream");
+    }
+
+    let result = test_provider(&db, None, "seedream", if key.trim().is_empty() { None } else { Some(key.trim()) }).await;
+    {
+        let conn = db.lock().unwrap();
+        let _ = record_check(&conn, "seedream", result.ok, result.message.as_deref());
     }
 
     Ok(result)

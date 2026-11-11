@@ -45,6 +45,7 @@ export const api: StudioApi = {
     addGeminiKeys: (keys) => invoke('settings_add_gemini_keys', { keys }),
     testGeminiKeys: () => invoke('settings_test_gemini_keys'),
     setCustom: (baseUrl, key) => invoke('settings_set_custom', { baseUrl, key }),
+    setSeedream: (baseUrl, key) => invoke('settings_set_seedream', { baseUrl, key }),
     setFlow2api: (baseUrl, key, mode) => invoke('settings_set_flow2api', { baseUrl, key, mode }),
     clearKey: (provider) => invoke('settings_clear_key', { provider }),
     revealKey: (provider) => invoke('settings_reveal_key', { provider }),

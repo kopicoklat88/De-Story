@@ -102,6 +102,7 @@ pub fn run() {
             commands::settings_keys,
             commands::settings_set_key,
             commands::settings_set_custom,
+            commands::settings_set_seedream,
             commands::settings_clear_key,
             commands::settings_set_flow2api,
             commands::settings_set_gemini_keys,

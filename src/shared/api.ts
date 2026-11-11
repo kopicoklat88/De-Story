@@ -80,6 +80,8 @@ export interface StudioApi {
     testGeminiKeys(): Promise<GeminiKeyTestResult[]>
     /** Saves an OpenAI-compatible endpoint; the key is optional for local servers. */
     setCustom(baseUrl: string, key: string): Promise<KeyTestResult>
+    /** Saves the Seedream (BytePlus ModelArk) image endpoint + API key. */
+    setSeedream(baseUrl: string, key: string): Promise<KeyTestResult>
     /** Saves the Flow2API endpoint. `bundled` manages the shipped server itself; `external` talks to the given base URL. */
     setFlow2api(baseUrl: string, key: string, mode: 'bundled' | 'external'): Promise<KeyTestResult>
     clearKey(provider: ApiProvider): Promise<void>

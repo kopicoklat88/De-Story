@@ -23,6 +23,7 @@ const FAMILY_LOGO: Record<string, { src: string; bg: string; inset: number }> = 
   'Z-Image': { src: 'models/alibaba-color.svg', bg: '#FFFFFF', inset: 0.16 },
   Kling: { src: 'models/kling-color.svg', bg: '#FFFFFF', inset: 0.18 },
   Seedance: { src: 'models/bytedance-color.svg', bg: '#FFFFFF', inset: 0.18 },
+  Seedream: { src: 'models/bytedance-color.svg', bg: '#FFFFFF', inset: 0.18 },
   Wan: { src: 'models/alibaba-color.svg', bg: '#FFFFFF', inset: 0.16 },
   HappyHorse: { src: 'models/alibaba-color.svg', bg: '#FFFFFF', inset: 0.16 },
   Hailuo: { src: 'models/hailuo-color.svg', bg: '#FFFFFF', inset: 0.18 },

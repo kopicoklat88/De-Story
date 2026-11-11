@@ -187,6 +187,7 @@ pub fn default_settings() -> Value {
         "llmProvider": "gemini",
         "llmModels": { "gemini": "gemini-3.8-flash", "openrouter": "", "groq": "", "custom": "" },
         "customBaseUrl": "",
+        "seedreamBaseUrl": "https://ark.ap-southeast.bytepluses.com/api/v3",
         "flow2apiBaseUrl": "http://localhost:8000",
         "flow2apiMode": "bundled",
         "geminiTtsModel": "gemini-3.8-flash-tts",

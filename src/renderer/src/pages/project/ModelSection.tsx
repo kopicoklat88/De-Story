@@ -98,7 +98,7 @@ export function ModelSection({
       <div className="flex items-baseline gap-2">
         <span className="text-sm font-semibold">Model AI</span>
         <span className="text-[13px] text-muted">
-          {IMAGE_OPTIONS.length} model gambar dan {VIDEO_OPTIONS.length} model video (Higgsfield, Google Flow & Endpoint Custom)
+          {IMAGE_OPTIONS.length} model gambar dan {VIDEO_OPTIONS.length} model video (Higgsfield, Google Flow, Endpoint Custom & Seedream)
         </span>
       </div>
       <div className="grid grid-cols-2 gap-3">

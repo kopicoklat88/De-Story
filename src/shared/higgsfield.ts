@@ -1,6 +1,7 @@
 import catalog from './higgsfield-catalog.json'
 import { CUSTOM_IMAGE_MODELS } from './custom'
 import { FLOW_IMAGE_MODELS, FLOW_VIDEO_MODELS, mapLegacyFlowModel } from './flow'
+import { SEEDREAM_IMAGE_MODELS } from './seedream'
 import type { AspectRatio, ModelOption } from './types'
 
 /**
@@ -48,6 +49,10 @@ export function getImageModel(id: string | null | undefined): HfModel {
   }
   if (id?.startsWith('custom:')) {
     const hit = CUSTOM_IMAGE_MODELS.find((m) => m.id === id)
+    if (hit) return hit
+  }
+  if (id?.startsWith('seedream:')) {
+    const hit = SEEDREAM_IMAGE_MODELS.find((m) => m.id === id)
     if (hit) return hit
   }
   return HF_IMAGE_MODELS.find((m) => m.id === id) ?? HF_IMAGE_MODELS.find((m) => m.id === DEFAULT_IMAGE_MODEL)!
@@ -203,6 +208,7 @@ export function hfModelOptions(kind: 'image' | 'video'): ModelOption[] {
   const hfList = kind === 'image' ? HF_IMAGE_MODELS : HF_VIDEO_MODELS
   const flowList = kind === 'image' ? FLOW_IMAGE_MODELS : FLOW_VIDEO_MODELS
   const customList = kind === 'image' ? CUSTOM_IMAGE_MODELS : []
+  const seedreamList = kind === 'image' ? SEEDREAM_IMAGE_MODELS : []
   const recommended = kind === 'image' ? DEFAULT_IMAGE_MODEL : DEFAULT_VIDEO_MODEL
 
   const flowOptions: ModelOption[] = flowList.map((m) => ({
@@ -221,6 +227,14 @@ export function hfModelOptions(kind: 'image' | 'video'): ModelOption[] {
     tags: m.tags
   }))
 
+  const seedreamOptions: ModelOption[] = seedreamList.map((m) => ({
+    id: m.id,
+    name: m.name,
+    family: m.family,
+    description: describeModel(m),
+    tags: m.tags
+  }))
+
   const hfOptions: ModelOption[] = [...hfList.filter((m) => m.id === recommended), ...hfList.filter((m) => m.id !== recommended)].map((m) => ({
     id: m.id,
     name: m.name,
@@ -229,5 +243,5 @@ export function hfModelOptions(kind: 'image' | 'video'): ModelOption[] {
     tags: m.id === recommended ? ['Rekomendasi', ...m.tags] : m.tags
   }))
 
-  return [...flowOptions, ...customOptions, ...hfOptions]
+  return [...flowOptions, ...customOptions, ...seedreamOptions, ...hfOptions]
 }
