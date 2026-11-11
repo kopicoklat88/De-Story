@@ -304,7 +304,7 @@ function KeyForm({
           <Field label="Kredensial" className="flex-[1.3]">
             <input
               readOnly
-              value="Diurus otomatis oleh De Story"
+              value="Diurus otomatis oleh SisiStory"
               aria-label="Kredensial Flow2API bawaan"
               className={cx(inputCls, 'h-11 cursor-default bg-paper italic text-muted text-sm')}
             />
@@ -896,7 +896,7 @@ function Flow2ApiSection({
           status={status}
           customUrl={settings.flow2apiBaseUrl || 'http://localhost:8000'}
           flow2apiMode={settings.flow2apiMode ?? 'bundled'}
-          help="De Story bisa menjalankan Flow2API sendiri, atau tersambung ke server flow2api yang kamu jalankan."
+          help="SisiStory bisa menjalankan Flow2API sendiri, atau tersambung ke server flow2api yang kamu jalankan."
           hint={
             <>
               Menjalankan repositori{' '}
@@ -959,7 +959,7 @@ function Flow2ApiBackendStatus({ mode }: { mode: 'bundled' | 'external' }) {
       <p className="flex items-start gap-2.5 border-t border-dashed border-line pt-4 text-[13px] leading-relaxed text-ink-2">
         <Server className="mt-0.5 size-4 shrink-0" />
         <span>
-          De Story tetap menjalankan Flow2API bawaannya di latar belakang, tetapi generate memakai server yang kamu tetapkan di
+          SisiStory tetap menjalankan Flow2API bawaannya di latar belakang, tetapi generate memakai server yang kamu tetapkan di
           atas.
         </span>
       </p>
@@ -1103,7 +1103,7 @@ function Flow2ApiPanelCard({ baseUrl, ready }: { baseUrl: string | null; ready: 
       </div>
       <p className="mt-2 text-[13px] leading-relaxed text-ink-2">
         Konfigurasi captcha — layanan solver berbayar, browser lokal, profil personal, remote browser, dan extension worker —
-        dilakukan di panel ini. De Story hanya menyalakan servernya dan membukakan panelnya.
+        dilakukan di panel ini. SisiStory hanya menyalakan servernya dan membukakan panelnya.
       </p>
       <div className="mt-3 flex flex-col gap-2">
         <div className="flex items-center gap-2">
@@ -1337,7 +1337,7 @@ export function Settings() {
                 <div>
                   <h1 className="font-display text-[34px] font-bold tracking-[-0.015em]">Layanan AI dan kunci</h1>
                   <p className="mt-2 max-w-[700px] text-[15px] text-ink-2">
-                    De Story memakai akun layanan milikmu sendiri. Kunci disimpan terenkripsi di komputer ini dan hanya dikirim langsung ke
+                    SisiStory memakai akun layanan milikmu sendiri. Kunci disimpan terenkripsi di komputer ini dan hanya dikirim langsung ke
                     layanan yang bersangkutan.
                   </p>
                 </div>
@@ -1389,13 +1389,13 @@ export function Settings() {
             {tab === 'about' && (
               <section className="flex flex-col gap-3.5 rounded-2xl border border-line bg-surface p-6 text-[15px] leading-relaxed text-ink-2">
                 <div className="flex flex-col">
-                  <h1 className="font-display text-[34px] font-bold tracking-[-0.015em] text-ink">De Story</h1>
-                  <span className="text-sm font-medium text-muted">v1.1.0 · Modified by ikram.mf7</span>
+                  <h1 className="font-display text-[34px] font-bold tracking-[-0.015em] text-ink">SisiStory</h1>
+                  <span className="text-sm font-medium text-muted">v1.1.0 · oleh kopicoklat88</span>
                 </div>
                 <div className="rounded-xl border border-line bg-sand/60 p-4 text-[13.5px] leading-relaxed">
                   <div className="font-semibold text-ink">Kredit &amp; Atribusi Proyek Original:</div>
                   <p className="mt-1">
-                    <strong>De Story</strong> versi 1.1.0 dimodifikasi dan dikembangkan oleh <strong>ikram.mf7</strong>.
+                    <strong>SisiStory</strong> versi 1.1.0 adalah fork dari <strong>De-Story</strong> karya <strong>ikram.mf7</strong>.
                     Aplikasi ini dibangun berbasis proyek original <strong>Bang Story</strong> karya <strong>Bang Tutorial</strong>.
                   </p>
                 </div>

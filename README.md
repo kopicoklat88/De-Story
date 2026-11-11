@@ -16,7 +16,7 @@
 
 ## 📖 Daftar Isi
 
-1. [Tentang De Story](#-tentang-de-story)
+1. [Tentang SisiStory](#-tentang-de-story)
 2. [Fitur Unggulan](#-fitur-unggulan)
 3. [Arsitektur & Kinerja](#-arsitektur--kinerja)
 4. [Prasyarat Sistem](#-prasyarat-sistem)
@@ -29,9 +29,9 @@
 
 ---
 
-## 🌟 Tentang De Story
+## 🌟 Tentang SisiStory
 
-**De Story** adalah studio pembuatan konten video berbasis kecerdasan buatan (AI) yang berjalan langsung di desktop. De Story mengotomatisasi seluruh siklus produksi video mulai dari merumuskan premis cerita, memecah adegan naskah (storyboard), menghasilkan gambar atau video animasi dengan konsistensi karakter, memproduksi suara narasi manusiawi berkecepatan tinggi, hingga menyelaraskan teks subtitle karaoke kata-demi-kata (*word-level alignment*) secara lokal menggunakan Whisper CPP.
+**SisiStory** adalah studio pembuatan konten video berbasis kecerdasan buatan (AI) yang berjalan langsung di desktop. SisiStory mengotomatisasi seluruh siklus produksi video mulai dari merumuskan premis cerita, memecah adegan naskah (storyboard), menghasilkan gambar atau video animasi dengan konsistensi karakter, memproduksi suara narasi manusiawi berkecepatan tinggi, hingga menyelaraskan teks subtitle karaoke kata-demi-kata (*word-level alignment*) secara lokal menggunakan Whisper CPP.
 
 Hasil akhirnya dapat ditinjau langsung di editor multi-track internal dan diekspor ke video MP4 berkualitas tinggi via FFmpeg terintegrasi.
 
@@ -75,9 +75,9 @@ Hasil akhirnya dapat ditinjau langsung di editor multi-track internal dan dieksp
 
 ## ⚡ Arsitektur & Kinerja
 
-De Story dibangun menggunakan fondasi **Tauri v2** dengan backend **Rust**, menggantikan arsitektur Electron tradisional:
+SisiStory dibangun menggunakan fondasi **Tauri v2** dengan backend **Rust**, menggantikan arsitektur Electron tradisional:
 
-| Parameter | Versi Lama (Electron) | De Story v1.1.0 (Tauri v2 + Rust) |
+| Parameter | Versi Lama (Electron) | SisiStory v1.1.0 (Tauri v2 + Rust) |
 | :--- | :--- | :--- |
 | **Konsumsi RAM Idle** | ~320 MB – 450 MB | **~40 MB – 60 MB** |
 | **Ukuran Distribusi** | ~150 MB+ installer | **Paket biner native super ringkas** |
@@ -89,7 +89,7 @@ De Story dibangun menggunakan fondasi **Tauri v2** dengan backend **Rust**, meng
 
 ## 💻 Prasyarat Sistem
 
-Sebelum menjalankan atau membangun De Story dari sumber kode, pastikan sistem Anda memenuhi persyaratan berikut:
+Sebelum menjalankan atau membangun SisiStory dari sumber kode, pastikan sistem Anda memenuhi persyaratan berikut:
 
 - **Sistem Operasi:** Windows 10/11 (64-bit)
 - **Node.js:** Versi LTS (v18.0.0 atau lebih baru) & `npm`
@@ -107,8 +107,8 @@ Untuk Build Installer:
 
 ### 1. Kloning Repositori
 ```bash
-git clone https://github.com/username/de-story.git
-cd de-story
+git clone https://github.com/kopicoklat88/De-Story.git
+cd De-Story
 ```
 
 ### 2. Pasang Dependensi Node.js
@@ -152,7 +152,7 @@ Repositori ini telah dilengkapi dengan workflow CI/CD GitHub Actions di [`.githu
 ```
 
 ### Langkah 0: Konfigurasi API Keys
-1. Buka aplikasi **De Story**.
+1. Buka aplikasi **SisiStory**.
 2. Masuk ke menu **Pengaturan** (ikon gerigi di sudut kanan atas).
 3. Pada tab **Layanan AI dan kunci**, lengkapi kredensial yang dibutuhkan:
    - **Google Gemini API Key:** (Bisa memasukkan beberapa kunci sekaligus dipisahkan koma atau baris baru untuk rotasi otomatis).
@@ -186,13 +186,13 @@ Repositori ini telah dilengkapi dengan workflow CI/CD GitHub Actions di [`.githu
 1. Di halaman Editor, Anda dapat memutar pratinjau video secara real-time.
 2. Sesuaikan durasi klip, aktifkan efek kamera (*Pan & Zoom*), atur volume suara narator, dan tambahkan musik latar (BGM).
 3. Kustomisasi tampilan subtitle karaoke (posisi teks, font, ukuran, dan warna highlight).
-4. Klik tombol **Ekspor Video** di pojok kanan atas. De Story akan merender video ke format `.mp4` dan menyimpannya di folder `Videos/De Story/`.
+4. Klik tombol **Ekspor Video** di pojok kanan atas. SisiStory akan merender video ke format `.mp4` dan menyimpannya di folder `Videos/SisiStory/`.
 
 ---
 
 ## 🧩 Integrasi Google Flow & Flow2API
 
-De Story menyertakan runtime bawaan **Flow2API** (berbasis Python Standalone & Playwright) yang disiapkan secara otomatis tanpa mengharuskan pengguna memasang interpreter Python eksternal.
+SisiStory menyertakan runtime bawaan **Flow2API** (berbasis Python Standalone & Playwright) yang disiapkan secara otomatis tanpa mengharuskan pengguna memasang interpreter Python eksternal.
 
 ### Pilihan Solusi CAPTCHA reCAPTCHA Enterprise
 Google Flow memerlukan validasi reCAPTCHA Enterprise. Semua metode dapat dikonfigurasi melalui **Panel Admin Flow2API**:
@@ -217,16 +217,16 @@ Google Flow memerlukan validasi reCAPTCHA Enterprise. Semua metode dapat dikonfi
 
 ## 🔒 Keamanan & Privasi Data
 
-De Story dirancang dengan prinsip privasi data mutlak (*Privacy by Design*):
+SisiStory dirancang dengan prinsip privasi data mutlak (*Privacy by Design*):
 
 1. **Enkripsi Kunci Tingkat Sistem Operasi:**
    - Di Windows, seluruh API Key disimpan terenkripsi menggunakan **Windows DPAPI (`CryptProtectData`)**. Kunci hanya dapat didekripsi oleh pengguna Windows aktif pada perangkat fisik tersebut.
    - Di macOS dan Linux, data dilindungi menggunakan *OS Keyring / Secret Service* dengan selubung autentikasi AES-256-GCM.
 2. **Pemisahan Data Pengguna & Repositori:**
    - Semua database proyek (`studio.db`), database cache Flow2API (`flow.db`), aset video, gambar render, dan audio disimpan di folder sistem aplikasi:
-     - **Windows:** `%APPDATA%\De Story\` (`C:\Users\<User>\AppData\Roaming\De Story\`)
-     - **macOS:** `~/Library/Application Support/De Story/`
-     - **Linux:** `~/.config/De Story/`
+     - **Windows:** `%APPDATA%\SisiStory\` (`C:\Users\<User>\AppData\Roaming\SisiStory\`)
+     - **macOS:** `~/Library/Application Support/SisiStory/`
+     - **Linux:** `~/.config/SisiStory/`
    - Data ini **sepenuhnya berada di luar folder repositori**, sehingga aman dari risiko kebocoran saat Anda melakukan commit atau push ke GitHub.
 3. **Aman untuk Build & Distribusi:**
    - Saat Anda menjalankan `npm run tauri:build`, biner installer yang dihasilkan murni hanya berisi kode aplikasi tanpa menyertakan API Key, riwayat proyek, atau kredensial pribadi Anda.
@@ -244,7 +244,7 @@ de-story/
 │   │   ├── media/                 # FFmpeg video exporter & engine subtitle ASS
 │   │   ├── services/              # Integrasi AI (Gemini, ElevenLabs, Higgsfield, LLM)
 │   │   ├── speech/                # Whisper CPP engine & Needleman-Wunsch alignment
-│   │   ├── paths.rs               # Manajemen folder data pengguna (%APPDATA%\De Story)
+│   │   ├── paths.rs               # Manajemen folder data pengguna (%APPDATA%\SisiStory)
 │   │   ├── protocol.rs            # Custom protocol studio:// (HTTP 206 Range Streaming)
 │   │   ├── secrets.rs             # Windows DPAPI native encryption (CryptProtectData)
 │   │   └── main.rs                # Entrypoint biner aplikasi

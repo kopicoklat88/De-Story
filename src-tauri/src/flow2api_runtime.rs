@@ -362,7 +362,7 @@ async fn verify_ready(base: &str, token: &str, instance: &str) -> Result<(), Str
     Ok(())
 }
 
-/// Put the child in a job object that kills the whole tree when De Story
+/// Put the child in a job object that kills the whole tree when SisiStory
 /// exits, so a crashed app cannot leave a stray Python/browser behind. The
 /// returned handle must stay open for the app's lifetime.
 #[cfg(windows)]
@@ -486,7 +486,7 @@ pub fn is_bundled(mode: &str) -> bool {
 }
 
 /// Where the whole Flow2API data tree lives for this user
-/// (`%APPDATA%\De Story\flow2api`): DB, config and the private key files.
+/// (`%APPDATA%\SisiStory\flow2api`): DB, config and the private key files.
 pub fn data_dir() -> std::path::PathBuf {
     crate::paths::user_data_dir().join("flow2api")
 }

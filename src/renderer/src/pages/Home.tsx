@@ -319,11 +319,12 @@ export function Home() {
 
           <footer className="mt-14 flex flex-col items-center justify-center gap-1 border-t border-line/60 pt-6 pb-2 text-xs text-muted">
             <div>
-              <span className="font-semibold text-ink-2">De Story v1.1.0</span> · Modified &amp; Developed by{' '}
-              <span className="font-semibold text-ink-2">ikram.mf7</span>
+              <span className="font-semibold text-ink-2">SisiStory v1.1.0</span> · by{' '}
+              <span className="font-semibold text-ink-2">kopicoklat88</span>
             </div>
             <div>
-              Based on original project:{' '}
+              Fork dari <span className="font-medium text-ink-2">De-Story</span> oleh{' '}
+              <span className="font-medium text-ink-2">ikram.mf7</span> · Based on original project:{' '}
               <span className="font-medium text-ink-2">Bang Story</span> by{' '}
               <span className="font-medium text-ink-2">Bang Tutorial</span>
             </div>

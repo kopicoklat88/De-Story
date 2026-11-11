@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "De Story",
+  "productName": "SisiStory",
   "version": "1.1.0",
-  "identifier": "com.ikrammf7.destory",
+  "identifier": "com.kopicoklat88.sisistory",
   "build": {
     "beforeDevCommand": "npm run dev:vite",
     "beforeBuildCommand": "npm run build:vite",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "De Story",
+        "title": "SisiStory",
         "width": 1440,
         "height": 900,
         "minWidth": 1180,

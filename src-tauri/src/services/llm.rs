@@ -42,7 +42,7 @@ pub async fn test_llm(provider: &str, key: Option<&str>, base_override: Option<&
         }
     }
     if provider == "openrouter" {
-        req = req.header("X-OpenRouter-Title", "De Story");
+        req = req.header("X-OpenRouter-Title", "SisiStory");
     }
 
     match req.send().await {
@@ -73,7 +73,7 @@ pub async fn fetch_generic_openai_models(provider: &str, key: Option<&str>, base
         }
     }
     if provider == "openrouter" {
-        req = req.header("X-OpenRouter-Title", "De Story");
+        req = req.header("X-OpenRouter-Title", "SisiStory");
     }
 
     let res = req.send().await.map_err(|e| e.to_string())?;
@@ -144,7 +144,7 @@ pub async fn generate_json(
 
     let mut req1 = client.post(&url).bearer_auth(key).json(&body1);
     if provider == "openrouter" {
-        req1 = req1.header("X-OpenRouter-Title", "De Story");
+        req1 = req1.header("X-OpenRouter-Title", "SisiStory");
     }
 
     if let Ok(res) = req1.send().await {
@@ -175,7 +175,7 @@ pub async fn generate_json(
 
     let mut req2 = client.post(&url).bearer_auth(key).json(&body2);
     if provider == "openrouter" {
-        req2 = req2.header("X-OpenRouter-Title", "De Story");
+        req2 = req2.header("X-OpenRouter-Title", "SisiStory");
     }
 
     let res = req2.send().await.map_err(|e| e.to_string())?;
@@ -196,7 +196,7 @@ async fn openrouter_models(key: Option<&str>) -> Result<Vec<Value>, String> {
     let client = Client::new();
     let mut req = client
         .get("https://openrouter.ai/api/v1/models")
-        .header("X-OpenRouter-Title", "De Story");
+        .header("X-OpenRouter-Title", "SisiStory");
     if let Some(k) = key {
         if !k.is_empty() {
             req = req.bearer_auth(k);

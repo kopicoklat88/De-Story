@@ -2,13 +2,13 @@
 //!
 //! Release builds set `windows_subsystem = "windows"` (see `main.rs`), so a panic
 //! message has nowhere to go and the process just disappears. Every panic and
-//! every app-lifecycle transition is appended to `de-story.log` in the user
+//! every app-lifecycle transition is appended to `sisistory.log` in the user
 //! data dir instead, so a "force close" can be told apart from a normal quit.
 
 use std::io::Write;
 
 pub fn log_path() -> std::path::PathBuf {
-    crate::paths::user_data_dir().join("de-story.log")
+    crate::paths::user_data_dir().join("sisistory.log")
 }
 
 pub fn log_line(msg: &str) {

@@ -1,9 +1,9 @@
 [package]
-name = "de-story"
+name = "sisi-story"
 version = "1.1.0"
-description = "De Story Desktop Studio"
+description = "SisiStory Desktop Studio"
 edition = "2021"
-authors = ["ikram.mf7", "Bang Tutorial"]
+authors = ["kopicoklat88", "ikram.mf7", "Bang Tutorial"]
 
 [build-dependencies]
 tauri-build = { version = "2.2", features = [] }

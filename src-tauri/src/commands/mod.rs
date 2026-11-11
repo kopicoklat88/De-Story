@@ -931,7 +931,7 @@ pub fn export_default_folder(db: State<'_, DbPool>) -> Result<String, String> {
     }
 
     let p = dirs::video_dir()
-        .map(|v| v.join("De Story"))
+        .map(|v| v.join("SisiStory"))
         .unwrap_or_else(|| user_data_dir().join("exports"));
 
     Ok(p.to_string_lossy().to_string())

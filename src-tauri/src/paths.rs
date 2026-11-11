@@ -9,12 +9,17 @@ pub fn user_data_dir() -> PathBuf {
     }
 
     let app_data = dirs::data_dir().unwrap_or_else(|| PathBuf::from("."));
-    let current = app_data.join("De Story");
+    let current = app_data.join("SisiStory");
+    let legacy_de = app_data.join("De Story");
     let legacy_bang = app_data.join("Bang Story");
     let legacy = app_data.join("Studio Cerita");
 
     // Legacy folder migration: if old folder exists and new one does not, rename it
-    if !current.exists() && legacy_bang.join("studio.db").exists() {
+    if !current.exists() && legacy_de.join("studio.db").exists() {
+        if fs::rename(&legacy_de, &current).is_err() {
+            return legacy_de;
+        }
+    } else if !current.exists() && legacy_bang.join("studio.db").exists() {
         if fs::rename(&legacy_bang, &current).is_err() {
             return legacy_bang;
         }

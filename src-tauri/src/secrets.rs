@@ -129,9 +129,10 @@ pub fn decrypt_dpapi_raw(bytes: &[u8]) -> Option<Vec<u8>> {
 #[cfg(windows)]
 fn get_chromium_master_key() -> Option<Vec<u8>> {
     let appdata = std::env::var_os("APPDATA")?;
-    let path = std::path::PathBuf::from(&appdata).join("De Story").join("Local State");
+    let path = std::path::PathBuf::from(&appdata).join("SisiStory").join("Local State");
+    let legacy_de = std::path::PathBuf::from(&appdata).join("De Story").join("Local State");
     let legacy = std::path::PathBuf::from(&appdata).join("Bang Story").join("Local State");
-    let content = std::fs::read_to_string(path).or_else(|_| std::fs::read_to_string(legacy)).ok()?;
+    let content = std::fs::read_to_string(path).or_else(|_| std::fs::read_to_string(legacy_de)).or_else(|_| std::fs::read_to_string(legacy)).ok()?;
     let json: serde_json::Value = serde_json::from_str(&content).ok()?;
     let enc_key_b64 = json.get("os_crypt")?.get("encrypted_key")?.as_str()?;
     use base64::Engine;
@@ -212,7 +213,8 @@ fn platform_master_key(create_if_missing: bool) -> Result<[u8; 32], String> {
     static KEYRING_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
     let _guard = KEYRING_LOCK.lock().map_err(|_| "OS keyring lock poisoned".to_string())?;
     let unavailable = |e| format!("OS keyring unavailable or locked; unlock your login keychain/Secret Service: {e}");
-    let entry = keyring::Entry::new("De Story", "secret-master-key-v1")
+    let entry = keyring::Entry::new("SisiStory", "secret-master-key-v1")
+        .or_else(|_| keyring::Entry::new("De Story", "secret-master-key-v1"))
         .or_else(|_| keyring::Entry::new("Bang Story", "secret-master-key-v1"))
         .map_err(unavailable)?;
     match entry.get_secret() {
@@ -242,16 +244,18 @@ mod envelope {
     };
 
     // Header (including version), 96-bit random nonce, ciphertext and 128-bit tag.
-    const HEADER: &[u8] = b"DeStorySecret\x01";
-    const LEGACY_HEADER: &[u8] = b"BangStorySecret\x01";
+    const HEADER: &[u8] = b"SisiStorySecret\x01";
+    const LEGACY_HEADER: &[u8] = b"DeStorySecret\x01";
+    const LEGACY_HEADER_BANG: &[u8] = b"BangStorySecret\x01";
     const NONCE_LEN: usize = 12;
     const TAG_LEN: usize = 16;
 
     pub(super) fn validate(blob: &[u8]) -> Result<(), String> {
         let is_valid = (blob.starts_with(HEADER) && blob.len() >= HEADER.len() + NONCE_LEN + TAG_LEN)
-            || (blob.starts_with(LEGACY_HEADER) && blob.len() >= LEGACY_HEADER.len() + NONCE_LEN + TAG_LEN);
+            || (blob.starts_with(LEGACY_HEADER) && blob.len() >= LEGACY_HEADER.len() + NONCE_LEN + TAG_LEN)
+            || (blob.starts_with(LEGACY_HEADER_BANG) && blob.len() >= LEGACY_HEADER_BANG.len() + NONCE_LEN + TAG_LEN);
         if !is_valid {
-            return Err("Unsupported or malformed encrypted secret (expected De Story envelope)".to_string());
+            return Err("Unsupported or malformed encrypted secret (expected SisiStory envelope)".to_string());
         }
         Ok(())
     }
@@ -272,7 +276,9 @@ mod envelope {
 
     pub(super) fn decrypt(key: &[u8; 32], blob: &[u8]) -> Result<String, String> {
         validate(blob)?;
-        let header = if blob.starts_with(HEADER) { HEADER } else { LEGACY_HEADER };
+        let header = if blob.starts_with(HEADER) { HEADER }
+            else if blob.starts_with(LEGACY_HEADER) { LEGACY_HEADER }
+            else { LEGACY_HEADER_BANG };
         let cipher = Aes256Gcm::new_from_slice(key).map_err(|_| "Invalid secret encryption key")?;
         let nonce_end = header.len() + NONCE_LEN;
         let plaintext = cipher.decrypt(Nonce::from_slice(&blob[header.len()..nonce_end]), Payload {
