@@ -275,7 +275,7 @@ class Database:
 
             if config_dict:
                 captcha_config = config_dict.get("captcha", {})
-                captcha_method = captcha_config.get("captcha_method", "yescaptcha")
+                captcha_method = captcha_config.get("captcha_method", "extension")
                 yescaptcha_api_key = captcha_config.get("yescaptcha_api_key", "")
                 yescaptcha_base_url = captcha_config.get(
                     "yescaptcha_base_url", "https://api.yescaptcha.com"
