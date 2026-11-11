@@ -69,6 +69,11 @@ pub fn get_image_model(id: Option<&str>) -> HfModel {
                 return m;
             }
         }
+        if target.starts_with("custom:") {
+            if let Some(m) = crate::services::custom_visual::custom_image_models().into_iter().find(|m| m.id == target) {
+                return m;
+            }
+        }
     }
     let models = get_catalog_models();
     if let Some(target) = id {
@@ -678,13 +683,15 @@ pub fn generate_clip_image(
     job_mgr.spawn_task(&j_id, QueueName::Higgsfield, move |ctx| async move {
         ctx.progress(0.04, Some("Menyiapkan prompt"));
 
-        let (mode, flow_base, flow_key, key, project, model, chars) = {
+        let (mode, flow_base, flow_key, key, custom_base, custom_key, project, model, chars) = {
             let conn = db_clone.lock().unwrap();
             let s = get_settings(&conn);
             let mode = s.get("flow2apiMode").and_then(|x| x.as_str()).unwrap_or("bundled").to_string();
             let fb = s.get("flow2apiBaseUrl").and_then(|x| x.as_str()).unwrap_or("http://localhost:8000").to_string();
             let fk = get_secret(&conn, "flow2api");
             let k = get_secret(&conn, "higgsfield").unwrap_or_default();
+            let cb = s.get("customBaseUrl").and_then(|x| x.as_str()).unwrap_or("").to_string();
+            let ck = get_secret(&conn, "custom");
             let p = get_project(&conn, &p_id).ok_or("Proyek tidak ditemukan")?;
             let m = get_image_model(p.image_model.as_deref());
             let all_chars = characters_of(&conn, &p_id);
@@ -692,7 +699,7 @@ pub fn generate_clip_image(
                 .into_iter()
                 .filter(|c| clip.character_ids.contains(&c.id))
                 .collect();
-            (mode, fb, fk, k, p, m, needed)
+            (mode, fb, fk, k, cb, ck, p, m, needed)
         };
         let (flow_base, flow_key) = if crate::flow2api_runtime::is_bundled(&mode) {
             match flow2api_manager(&app_clone) {
@@ -809,6 +816,109 @@ pub fn generate_clip_image(
             return Ok(Some(asset_row.id));
         }
 
+        if model.id.starts_with("custom:") {
+            if custom_base.trim().is_empty() || custom_key.as_deref().unwrap_or("").trim().is_empty() {
+                return Err("Isi alamat endpoint + kunci custom dulu di Pengaturan › Penyusun cerita.".into());
+            }
+            let limit = max_refs(&model);
+            let mut ref_images = Vec::new();
+            let mut ref_names = Vec::new();
+
+            if limit > 0 && !chars.is_empty() {
+                let c_ids: Vec<String> = chars.iter().map(|c| c.id.clone()).collect();
+                wait_for_character_sheets(&db_clone, &c_ids, &ctx.token).await;
+
+                for c in &chars {
+                    if ref_images.len() >= limit {
+                        break;
+                    }
+                    let sheet_path_opt = {
+                        let conn = db_clone.lock().unwrap();
+                        get_character(&conn, &c.id)
+                            .and_then(|fresh| fresh.sheet_asset_id)
+                            .and_then(|sid| get_asset(&conn, &sid))
+                            .map(|a| asset_abs_path(&p_id, &a.local_path))
+                    };
+                    if let Some(path) = sheet_path_opt {
+                        if let Ok(bytes) = fs::read(&path) {
+                            ref_images.push(bytes);
+                            ref_names.push(c.name.clone());
+                        }
+                    }
+                }
+            }
+
+            let prompt = clip_prompt(&project.aspect_ratio, styles::style_prompt(&project.style_id), &clip.visual_prompt, &chars, &ref_names, prompt_limit(&model));
+            ctx.progress(0.15, Some("Mengirim ke endpoint custom"));
+
+            let img_bytes = crate::services::custom_visual::generate_image(
+                &custom_base,
+                custom_key.as_deref(),
+                &model.id,
+                &prompt,
+                &project.aspect_ratio,
+                &ref_images,
+                &ctx.token,
+            ).await?;
+
+            ctx.progress(0.92, Some("Menyimpan hasil gambar"));
+            let ext = if img_bytes.starts_with(&[0xFF, 0xD8, 0xFF]) {
+                ".jpg"
+            } else if img_bytes.starts_with(b"RIFF") && img_bytes.len() > 12 && &img_bytes[8..12] == b"WEBP" {
+                ".webp"
+            } else {
+                ".png"
+            };
+            let rel = save_asset_file(&p_id, "images", ext, &img_bytes)?;
+            let abs = asset_abs_path(&p_id, &rel);
+            let (w, h) = probe_size(&abs).await.unwrap_or((1920, 1080));
+
+            let new_asset = NewAsset {
+                project_id: p_id.clone(),
+                clip_id: Some(c_id.clone()),
+                character_id: None,
+                kind: "image".to_string(),
+                provider: "custom".to_string(),
+                model: Some(model.id.clone()),
+                prompt: Some(prompt),
+                remote_id: None,
+                remote_url: None,
+                local_path: rel,
+                duration_ms: None,
+                width: Some(w as i64),
+                height: Some(h as i64),
+                meta: json!({}),
+            };
+
+            let asset_row = {
+                let conn = db_clone.lock().unwrap();
+                insert_asset(&conn, new_asset)?
+            };
+
+            let _ = app_clone.emit("event:asset", &asset_row);
+
+            {
+                let conn = db_clone.lock().unwrap();
+                let _ = patch_clip(&conn, &c_id, json!({ "imageAssetId": asset_row.id }));
+                let _ = app_clone.emit(
+                    "event:clip",
+                    json!({
+                        "clipId": c_id,
+                        "patch": { "imageAssetId": asset_row.id }
+                    }),
+                );
+                if let Some(p) = get_project(&conn, &p_id) {
+                    let first = clips_of(&conn, &p_id).into_iter().next();
+                    if p.cover_asset_id.is_none() || first.map(|c| c.id) == Some(c_id.to_string()) {
+                        let _ = touch_project(&conn, &p_id, None);
+                    }
+                }
+                let _ = touch_project(&conn, &p_id, None);
+            }
+
+            return Ok(Some(asset_row.id));
+        }
+
         if key.is_empty() {
             return Err("Kunci Higgsfield belum diatur di Pengaturan.".into());
         }
@@ -885,17 +995,19 @@ pub fn generate_character_sheet(
     job_mgr.spawn_task(&j_id, QueueName::Sheet, move |ctx| async move {
         ctx.progress(0.04, Some("Menyiapkan lembar karakter"));
 
-        let (mode, flow_base, flow_key, key, model, style) = {
+        let (mode, flow_base, flow_key, key, custom_base, custom_key, model, style) = {
             let conn = db_clone.lock().unwrap();
             let s = get_settings(&conn);
             let mode = s.get("flow2apiMode").and_then(|x| x.as_str()).unwrap_or("bundled").to_string();
             let fb = s.get("flow2apiBaseUrl").and_then(|x| x.as_str()).unwrap_or("http://localhost:8000").to_string();
             let fk = get_secret(&conn, "flow2api");
             let k = get_secret(&conn, "higgsfield").unwrap_or_default();
+            let cb = s.get("customBaseUrl").and_then(|x| x.as_str()).unwrap_or("").to_string();
+            let ck = get_secret(&conn, "custom");
             let p = get_project(&conn, &p_id).ok_or("Proyek tidak ditemukan")?;
             let m = get_image_model(p.image_model.as_deref());
             let style = (styles::style_prompt(&p.style_id).to_string(), styles::style_character_hint(&p.style_id).to_string());
-            (mode, fb, fk, k, m, style)
+            (mode, fb, fk, k, cb, ck, m, style)
         };
         let (flow_base, flow_key) = if crate::flow2api_runtime::is_bundled(&mode) {
             match flow2api_manager(&app_clone) {
@@ -940,6 +1052,75 @@ pub fn generate_character_sheet(
                 character_id: Some(char_id.clone()),
                 kind: "image".to_string(),
                 provider: "flow2api".to_string(),
+                model: Some(model.id.clone()),
+                prompt: Some(prompt),
+                remote_id: None,
+                remote_url: None,
+                local_path: rel,
+                duration_ms: None,
+                width: Some(w as i64),
+                height: Some(h as i64),
+                meta: json!({}),
+            };
+
+            let asset_row = {
+                let conn = db_clone.lock().unwrap();
+                insert_asset(&conn, new_asset)?
+            };
+
+            let _ = app_clone.emit("event:asset", &asset_row);
+
+            {
+                let conn = db_clone.lock().unwrap();
+                let _ = set_character_sheet(&conn, &char_id, &asset_row.id);
+                let _ = app_clone.emit(
+                    "event:character",
+                    json!({
+                        "characterId": char_id,
+                        "patch": { "sheetAssetId": asset_row.id }
+                    }),
+                );
+                let _ = touch_project(&conn, &p_id, None);
+            }
+
+            return Ok(Some(asset_row.id));
+        }
+
+        if model.id.starts_with("custom:") {
+            if custom_base.trim().is_empty() || custom_key.as_deref().unwrap_or("").trim().is_empty() {
+                return Err("Isi alamat endpoint + kunci custom dulu di Pengaturan › Penyusun cerita.".into());
+            }
+            let prompt = sheet_prompt(&character, &style.0, &style.1);
+            ctx.progress(0.15, Some("Mengirim ke endpoint custom"));
+
+            let img_bytes = crate::services::custom_visual::generate_image(
+                &custom_base,
+                custom_key.as_deref(),
+                &model.id,
+                &prompt,
+                "16:9",
+                &[],
+                &ctx.token,
+            ).await?;
+
+            ctx.progress(0.92, Some("Menyimpan lembar karakter"));
+            let ext = if img_bytes.starts_with(&[0xFF, 0xD8, 0xFF]) {
+                ".jpg"
+            } else if img_bytes.starts_with(b"RIFF") && img_bytes.len() > 12 && &img_bytes[8..12] == b"WEBP" {
+                ".webp"
+            } else {
+                ".png"
+            };
+            let rel = save_asset_file(&p_id, "images", ext, &img_bytes)?;
+            let abs = asset_abs_path(&p_id, &rel);
+            let (w, h) = probe_size(&abs).await.unwrap_or((1920, 1080));
+
+            let new_asset = NewAsset {
+                project_id: p_id.clone(),
+                clip_id: None,
+                character_id: Some(char_id.clone()),
+                kind: "image".to_string(),
+                provider: "custom".to_string(),
                 model: Some(model.id.clone()),
                 prompt: Some(prompt),
                 remote_id: None,
@@ -1599,7 +1780,7 @@ pub async fn estimate_credits(
     seconds: Option<f64>,
     resolution: Option<&str>,
 ) -> Option<Value> {
-    if model_id.starts_with("flow:") {
+    if model_id.starts_with("flow:") || model_id.starts_with("custom:") {
         return Some(json!({
             "credits": 0,
             "usd": 0.0

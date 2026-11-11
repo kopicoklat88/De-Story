@@ -13,6 +13,7 @@ const FAMILY_LOGO: Record<string, { src: string; bg: string; inset: number }> = 
   Veo: { src: 'providers/gemini.svg', bg: '#FFFFFF', inset: 0.18 },
   'Nano Banana': { src: 'providers/gemini.svg', bg: '#FFFFFF', inset: 0.18 },
   'GPT Image': { src: 'models/openai.svg', bg: '#FFFFFF', inset: 0.2 },
+  'Endpoint Custom': { src: 'models/openai.svg', bg: '#FFFFFF', inset: 0.2 },
   Soul: { src: 'providers/higgsfield.png', bg: '#D1FE17', inset: 0 },
   'Cinema Studio': { src: 'providers/higgsfield.png', bg: '#D1FE17', inset: 0 },
   Grok: { src: 'models/grok.svg', bg: '#FFFFFF', inset: 0.2 },

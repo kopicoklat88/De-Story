@@ -741,6 +741,11 @@ function LlmSection({ settings, statusOf, onChanged, onSettings }: { settings: A
                 Model ini tidak mendukung output JSON terstruktur. Aplikasi tetap mencoba, tapi model berlabel JSON biasanya lebih stabil.
               </p>
             )}
+            {provider === 'custom' && (
+              <p className="text-[13px] text-muted">
+                Endpoint + kunci yang sama juga dipakai untuk model gambar Custom (GPT Image) — pilih di Model AI tiap proyek.
+              </p>
+            )}
           </div>
         )}
       </Card>
